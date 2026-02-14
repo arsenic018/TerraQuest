@@ -5,6 +5,26 @@ import time
 import uuid
 from typing import Dict, Any, List, Tuple, Optional
 
+'''
+This is the format in which the data entries are stored
+    
+  "activity": {
+    "id": "...",
+    "name": "...",
+    "category": "...",
+    "distance_miles": 9,
+    "elevation_gain_ft": 2500,
+    ...
+  }
+}
+
+
+This will fetch all the data
+
+activities = get_all_activity_submissions()
+
+'''
+
 DB_PATH = "terraquest.db"
 GENESIS_PREV_HASH = "0" * 64
 
@@ -127,7 +147,7 @@ def append_event(event_type: str, payload: Dict[str, Any]) -> Dict[str, Any]:
 
 def create_activity_submission(user_id: str, activity_data: Dict[str, Any]) -> Dict[str, Any]:
     event = {
-        "submitted_by": user_id,
+        "submitted_by": user_id, 
         "submitted_at": int(time.time()),
         "activity": {
             "id": str(uuid.uuid4()),
