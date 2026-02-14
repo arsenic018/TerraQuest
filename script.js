@@ -4,11 +4,9 @@ async function submitActivity() {
     const activityType = document.getElementById("activity_type").value.trim();
     const messageDiv = document.getElementById("activityMessage");
 
-    // Clear previous message
     messageDiv.innerHTML = "";
     messageDiv.className = "mt-3 text-center";
 
-    // Basic validation
     if (!userId || !activityName || !activityType) {
         messageDiv.classList.add("text-danger");
         messageDiv.innerText = "Please fill out all fields.";
@@ -18,26 +16,21 @@ async function submitActivity() {
     try {
         const response = await fetch("http://localhost:8000/activities", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                user_id: userId,
                 name: activityName,
-                type: activityType
+                description: activityType,
+                user_who_posted: userId,
+                difficulty_rating: 5,
+                points: 10
             })
         });
 
-        if (!response.ok) {
-            throw new Error("Server error");
-        }
-
-        const data = await response.json();
+        if (!response.ok) throw new Error("Server error");
 
         messageDiv.classList.add("text-success");
         messageDiv.innerText = "Activity submitted successfully!";
 
-        // Clear fields
         document.getElementById("user_id").value = "";
         document.getElementById("activity_name").value = "";
         document.getElementById("activity_type").value = "";
