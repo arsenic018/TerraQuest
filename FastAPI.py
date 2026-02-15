@@ -67,3 +67,7 @@ def verify_chain():
     valid, err = ledger.verify_chain()
     return {"valid": valid, "error": err}
 
+
+@app.get("/")
+def root():
+    return {"message": "TerraQuest API is running"}
