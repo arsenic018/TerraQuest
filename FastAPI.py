@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from blockchain_ledger import TerraQuestLedger
+from ledger import TerraQuestLedger
 
 # ------------------------
 # Models
@@ -66,3 +66,4 @@ def get_activities():
 def verify_chain():
     valid, err = ledger.verify_chain()
     return {"valid": valid, "error": err}
+
