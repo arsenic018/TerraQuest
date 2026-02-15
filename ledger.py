@@ -176,7 +176,7 @@ class TerraQuestLedger:
         """Return decoded JSON payloads of all activity_submission events (AI can scan this list)."""
         with sqlite3.connect(self.db_path) as con:
             rows = con.execute(
-                "SELECT payload_json FROM blocks WHERE event_type = ? ORDER BY height ASC",
+                "SELECT payload_json FROM blocks WHERE event_type = ? ORDER BY height DESC LIMIT 1",
                 ("activity_submission",),
             ).fetchall()
         return [json.loads(r[0]) for r in rows]
