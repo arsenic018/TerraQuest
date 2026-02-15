@@ -13,7 +13,7 @@ function App() {
   const [chainStatus, setChainStatus] = useState({ valid: true, error: null });
   const [loading, setLoading] = useState(true);
 
-  const API_URL = "http://localhost:8000";
+  const API_URL = "https://terraquest.onrender.com";
 
   // Fetch activities
   const fetchActivities = async () => {
@@ -161,3 +161,4 @@ function App() {
 }
 
 export default App;
+
