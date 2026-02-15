@@ -14,7 +14,7 @@ async function submitActivity() {
     }
 
     try {
-        const response = await fetch("http://localhost:8000/activities", {
+        const response = await fetch("https://terraquest-5jzd.onrender.com/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -41,3 +41,4 @@ async function submitActivity() {
         console.error(error);
     }
 }
+
