@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: terraquest
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      # SQLite lives on the instance disk. Without a persistent disk it resets on
+      # each deploy (and the demo data is re-seeded). Attach a disk and point
+      # TERRAQUEST_DB at it, e.g. /var/data/terraquest.db, to keep data.
+      - key: TERRAQUEST_DB
+        value: terraquest.db

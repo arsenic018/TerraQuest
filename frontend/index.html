@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TerraQuest</title>
+    <meta name="description" content="Crowdsourced real-world quests, scored by AI and recorded on a tamper-evident ledger.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <script>
+        // Apply theme before paint to avoid a flash.
+        (function () {
+            let t = null;
+            try { t = localStorage.getItem("tq-theme"); } catch (e) {}
+            if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            document.documentElement.setAttribute("data-bs-theme", t);
+        })();
+    </script>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md sticky-top tq-nav">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#explore"><i class="bi bi-compass"></i> TerraQuest</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" data-view="explore" href="#explore">Explore</a></li>
+                <li class="nav-item"><a class="nav-link" data-view="campaigns" href="#campaigns">Campaigns</a></li>
+                <li class="nav-item"><a class="nav-link" data-view="leaderboard" href="#leaderboard">Leaderboard</a></li>
+                <li class="nav-item"><a class="nav-link" data-view="ledger" href="#ledger">Ledger</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-link text-body" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+                    <i class="bi bi-circle-half"></i>
+                </button>
+                <div id="authArea"></div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<header class="tq-hero">
+    <div class="container py-5">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <h1 class="display-5 fw-bold">Turn the real world into a quest.</h1>
+                <p class="lead text-body-secondary mb-4">
+                    Post activities you love, let AI score their difficulty, complete quests others share,
+                    and climb the rankings. Every submission and completion is written to a tamper-evident ledger.
+                </p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary btn-lg" data-action="submit"><i class="bi bi-plus-lg"></i> Post an activity</button>
+                    <a class="btn btn-outline-secondary btn-lg" href="#campaigns">Browse campaigns</a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="row g-3" id="stats">
+                    <div class="col-6"><div class="tq-stat placeholder-glow"><span class="placeholder col-6"></span></div></div>
+                    <div class="col-6"><div class="tq-stat placeholder-glow"><span class="placeholder col-6"></span></div></div>
+                    <div class="col-6"><div class="tq-stat placeholder-glow"><span class="placeholder col-6"></span></div></div>
+                    <div class="col-6"><div class="tq-stat placeholder-glow"><span class="placeholder col-6"></span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container my-5">
+
+    <!-- Explore -->
+    <section data-section="explore">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <h2 class="h3 mb-1">Explore activities</h2>
+                <p class="text-body-secondary mb-0">Complete an activity to earn its points. Posters earn a 10% creator reward on every completion.</p>
+            </div>
+            <button class="btn btn-primary" data-action="submit"><i class="bi bi-plus-lg"></i> Post activity</button>
+        </div>
+        <form class="row g-2 mb-4" id="filters" role="search">
+            <div class="col-md-6">
+                <input class="form-control" type="search" id="filterQ" placeholder="Search activities, places…" aria-label="Search">
+            </div>
+            <div class="col-6 col-md-3">
+                <select class="form-select" id="filterTier" aria-label="Difficulty tier">
+                    <option value="">All tiers</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="extreme">Extreme</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <select class="form-select" id="filterSort" aria-label="Sort">
+                    <option value="newest">Newest</option>
+                    <option value="points">Most points</option>
+                    <option value="difficulty">Hardest</option>
+                    <option value="popular">Most completed</option>
+                </select>
+            </div>
+        </form>
+        <div class="row g-4" id="activityGrid"></div>
+    </section>
+
+    <!-- Campaigns -->
+    <section data-section="campaigns" hidden>
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <h2 class="h3 mb-1">Campaigns</h2>
+                <p class="text-body-secondary mb-0" id="campaignMeta">Themed challenge sets generated from community activities.</p>
+            </div>
+            <button class="btn btn-outline-primary" id="regenCampaigns"><i class="bi bi-stars"></i> Regenerate</button>
+        </div>
+        <div class="row g-4" id="campaignGrid"></div>
+    </section>
+
+    <!-- Leaderboard -->
+    <section data-section="leaderboard" hidden>
+        <h2 class="h3 mb-1">Leaderboard</h2>
+        <p class="text-body-secondary">Quest points from completions plus creator rewards from activities you posted.</p>
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th class="ps-3" style="width:4rem">#</th>
+                        <th>Player</th>
+                        <th class="text-end">Quests</th>
+                        <th class="text-end d-none d-sm-table-cell">Posted</th>
+                        <th class="text-end d-none d-md-table-cell">Creator pts</th>
+                        <th class="text-end pe-3">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody id="leaderboardBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ledger -->
+    <section data-section="ledger" hidden>
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <h2 class="h3 mb-1">Ledger explorer</h2>
+                <p class="text-body-secondary mb-0">Each block stores the SHA-256 hash of the one before it, so any edit to history is detectable.</p>
+            </div>
+            <button class="btn btn-outline-primary" id="verifyChain"><i class="bi bi-shield-check"></i> Verify chain</button>
+        </div>
+        <div id="chainStatus" class="mb-3"></div>
+        <div class="vstack gap-2" id="blockList"></div>
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-secondary" id="moreBlocks" hidden>Load older blocks</button>
+        </div>
+    </section>
+</main>
+
+<footer class="border-top py-4">
+    <div class="container d-flex flex-wrap justify-content-between gap-2 small text-body-secondary">
+        <span>&copy; 2026 TerraQuest</span>
+        <span id="aiBadge"></span>
+    </div>
+</footer>
+
+<!-- Auth modal -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="authForm" novalidate>
+            <div class="modal-header">
+                <h5 class="modal-title" id="authTitle">Welcome back</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills nav-fill mb-3">
+                    <li class="nav-item"><button type="button" class="nav-link active" data-auth-mode="login">Log in</button></li>
+                    <li class="nav-item"><button type="button" class="nav-link" data-auth-mode="register">Create account</button></li>
+                </ul>
+                <div class="mb-3">
+                    <label class="form-label" for="authUser">Username</label>
+                    <input class="form-control" id="authUser" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+">
+                    <div class="form-text" id="authUserHelp" hidden>3–24 letters, numbers or underscores.</div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="authPass">Password</label>
+                    <input class="form-control" id="authPass" type="password" autocomplete="current-password" required minlength="8" maxlength="128">
+                    <div class="form-text" id="authPassHelp" hidden>At least 8 characters.</div>
+                </div>
+                <div class="alert alert-danger py-2 mb-0 mt-3" id="authError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary w-100" id="authSubmit">Log in</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Submit activity modal -->
+<div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="submitForm" novalidate>
+            <div class="modal-header">
+                <h5 class="modal-title" id="submitTitle">Post an activity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="actName">Name</label>
+                    <input class="form-control" id="actName" required minlength="3" maxlength="80" placeholder="e.g. Billy Goat Trail Section A">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="actDesc">Description</label>
+                    <textarea class="form-control" id="actDesc" rows="3" required minlength="10" maxlength="500"
+                              placeholder="What is it, how long does it take, what makes it hard?"></textarea>
+                    <div class="form-text">Details like distance, terrain and skill level help the AI score it fairly.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="actLoc">Location <span class="text-body-secondary">(optional)</span></label>
+                    <input class="form-control" id="actLoc" maxlength="80" placeholder="City, park or region">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label d-flex justify-content-between" for="actDiff">
+                        <span>Your difficulty estimate <span class="text-body-secondary">(optional)</span></span>
+                        <span class="fw-semibold" id="actDiffVal">Skip</span>
+                    </label>
+                    <input type="range" class="form-range" id="actDiff" min="-0.5" max="10" step="0.5" value="-0.5">
+                    <div class="form-text">The final score and points are set by AI, not by you.</div>
+                </div>
+                <div class="alert alert-danger py-2 mb-0 mt-3" id="submitError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Score &amp; post</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Complete activity modal -->
+<div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="completeForm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="completeTitle">Complete activity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3" id="completeSummary"></p>
+                <label class="form-label" for="completeNote">How did it go? <span class="text-body-secondary">(optional)</span></label>
+                <textarea class="form-control" id="completeNote" rows="2" maxlength="200"></textarea>
+                <div class="alert alert-danger py-2 mb-0 mt-3" id="completeError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-success" id="completeBtn"><i class="bi bi-check2-circle"></i> Mark complete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Profile modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileTitle">Player</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="profileBody"></div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
